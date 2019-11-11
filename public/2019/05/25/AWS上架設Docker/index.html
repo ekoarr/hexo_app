@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="最近看到同事都在研究k8s, 但想想自己連Docker還沒用過，所以趁著假期來學習並記錄一下過程。如果不知道什麼是Docker, 那知自己上網查一下吧XD。 AWS EC2 的教學可以參考官方教學 AWS 教學 在這里我部署一個載有nginx的container到Ubuntu 18.04 上.  設置安全群組規則 先在aws的安全群組（security group） 增加 inbound rule">
+<meta name="keywords" content="Docker,AWS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS上架設Docker">
+<meta property="og:url" content="http://ekoar.github.io/2019/05/25/AWS上架設Docker/index.html">
+<meta property="og:site_name" content="憶">
+<meta property="og:description" content="最近看到同事都在研究k8s, 但想想自己連Docker還沒用過，所以趁著假期來學習並記錄一下過程。如果不知道什麼是Docker, 那知自己上網查一下吧XD。 AWS EC2 的教學可以參考官方教學 AWS 教學 在這里我部署一個載有nginx的container到Ubuntu 18.04 上.  設置安全群組規則 先在aws的安全群組（security group） 增加 inbound rule">
+<meta property="og:locale" content="zh">
+<meta property="og:image" content="http://ekoar.github.io/images/security_gp.png">
+<meta property="og:updated_time" content="2019-05-25T10:17:39.223Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AWS上架設Docker">
+<meta name="twitter:description" content="最近看到同事都在研究k8s, 但想想自己連Docker還沒用過，所以趁著假期來學習並記錄一下過程。如果不知道什麼是Docker, 那知自己上網查一下吧XD。 AWS EC2 的教學可以參考官方教學 AWS 教學 在這里我部署一個載有nginx的container到Ubuntu 18.04 上.  設置安全群組規則 先在aws的安全群組（security group） 增加 inbound rule">
+<meta name="twitter:image" content="http://ekoar.github.io/images/security_gp.png">
+    
+    
+        
+          
+              <link rel="shortcut icon" href="/images/favicon.ico">
+          
+        
+        
+          
+            <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+          
+        
+        
+          
+            <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+          
+        
+    
+    <!-- title -->
+    <title>AWS上架設Docker</title>
+    <!-- styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- persian styles -->
+    
+      <link rel="stylesheet" href="/css/rtl.css">
+    
+    <!-- rss -->
+    
+    
+</head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
+    </span>
+    <br>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ekoar.github.io/2019/05/25/AWS上架設Docker/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&text=AWS上架設Docker"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&is_video=false&description=AWS上架設Docker"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AWS上架設Docker&body=Check out this article: http://ekoar.github.io/2019/05/25/AWS上架設Docker/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&name=AWS上架設Docker&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#設置安全群組規則"><span class="toc-number">1.</span> <span class="toc-text">設置安全群組規則</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#增加儲存倉，用於安裝及更新Docker"><span class="toc-number">2.</span> <span class="toc-text">增加儲存倉，用於安裝及更新Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安裝Docker"><span class="toc-number">3.</span> <span class="toc-text">安裝Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立Nginx-環境"><span class="toc-number">4.</span> <span class="toc-text">建立Nginx 環境</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        AWS上架設Docker
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">憶</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-05-25T05:44:28.000Z" itemprop="datePublished">2019-05-25</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/Docker/">Docker</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link" href="/tags/AWS/">AWS</a>, <a class="tag-link" href="/tags/Docker/">Docker</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>最近看到同事都在研究k8s, 但想想自己連Docker還沒用過，所以趁著假期來學習並記錄一下過程。如果不知道什麼是Docker, 那知自己上網查一下吧XD。 AWS EC2 的教學可以參考官方教學 <a href="https://aws.amazon.com/tw/getting-started/tutorials/launch-a-virtual-machine/" target="_blank" rel="noopener">AWS 教學</a></p>
+<p>在這里我部署一個載有nginx的container到Ubuntu 18.04 上. </p>
+<h3 id="設置安全群組規則"><a href="#設置安全群組規則" class="headerlink" title="設置安全群組規則"></a>設置安全群組規則</h3><ol>
+<li>先在aws的安全群組（security group） 增加 inbound rules (port 80) 允許外來的連線</li>
+</ol>
+<img src="/images/security_gp.png" width="600" height="400">
+<h3 id="增加儲存倉，用於安裝及更新Docker"><a href="#增加儲存倉，用於安裝及更新Docker" class="headerlink" title="增加儲存倉，用於安裝及更新Docker"></a>增加儲存倉，用於安裝及更新Docker</h3><ol>
+<li><p>更新apt packages</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-get update</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>安裝 packages </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-get install \</span><br><span class="line">apt-transport-https \</span><br><span class="line">ca-certificates \</span><br><span class="line">curl \</span><br><span class="line">gnupg-agent \</span><br><span class="line">software-properties-common</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>增加Docker官方GPG金鑰:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>檢驗金鑰</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-key fingerprint 0EBFCD88</span><br><span class="line">    </span><br><span class="line">pub   rsa4096 2017-02-22 [SCEA]</span><br><span class="line">      9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88</span><br><span class="line">uid           [ unknown] Docker Release (CE deb) &lt;docker@docker.com&gt;</span><br><span class="line">sub   rsa4096 2017-02-22 [S]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>建立倉庫</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo add-apt-repository \</span><br><span class="line">"deb [arch=amd64] https://download.docker.com/linux/ubuntu \</span><br><span class="line"><span class="meta">$</span>(lsb_release -cs) \</span><br><span class="line">stable"</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="安裝Docker"><a href="#安裝Docker" class="headerlink" title="安裝Docker"></a>安裝Docker</h3><ol>
+<li><p>更新 apt packages</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-get update</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>安裝最新版本的Docker</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> sudo apt-get install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="建立Nginx-環境"><a href="#建立Nginx-環境" class="headerlink" title="建立Nginx 環境"></a>建立Nginx 環境</h3><ol>
+<li><p>下載 Nginx image</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker pull nginx</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看本地所有的docker image</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker images</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>啟動 nginx,命名為new_server, 並將docker container 80 port 對應到本機的80 port</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker run -d -p 80:80 --name new_server nginx</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>檢查 Docker container 是否運行</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span> docker ps</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>往AWS的 提供的 public dns 就能看到 nginx 的主頁</p>
+</li>
+</ol>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#設置安全群組規則"><span class="toc-number">1.</span> <span class="toc-text">設置安全群組規則</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#增加儲存倉，用於安裝及更新Docker"><span class="toc-number">2.</span> <span class="toc-text">增加儲存倉，用於安裝及更新Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安裝Docker"><span class="toc-number">3.</span> <span class="toc-text">安裝Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立Nginx-環境"><span class="toc-number">4.</span> <span class="toc-text">建立Nginx 環境</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" href="http://www.facebook.com/sharer.php?u=http://ekoar.github.io/2019/05/25/AWS上架設Docker/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://twitter.com/share?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&text=AWS上架設Docker"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.linkedin.com/shareArticle?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://pinterest.com/pin/create/bookmarklet/?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&is_video=false&description=AWS上架設Docker"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=AWS上架設Docker&body=Check out this article: http://ekoar.github.io/2019/05/25/AWS上架設Docker/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="https://getpocket.com/save?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://reddit.com/submit?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.stumbleupon.com/submit?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://digg.com/submit?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&title=AWS上架設Docker"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="http://www.tumblr.com/share/link?url=http://ekoar.github.io/2019/05/25/AWS上架設Docker/&name=AWS上架設Docker&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<footer id="footer">
+  <div class="footer-left">
+    Copyright &copy; 2019 Ekoar
+  </div>
+  <div class>
+    <span id="busuanzi_container_site_uv">
+      本站訪客數<span id="busuanzi_value_site_uv"></span>人次
+    </span>
+    <!-- <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/about/">About</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+        
+      </ul>
+    </nav> -->
+  </div>
+</footer>
+
+
+    </div>
+    <!-- styles -->
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+    <!-- jquery -->
+<script src="/lib/jquery/jquery.min.js"></script>
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+<script src="/js/main.js"></script>
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Disqus Comments -->
+
+
+</body>
+</html>

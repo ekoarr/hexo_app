@@ -1,1 +1,1 @@
-hexo_app
+hexo
